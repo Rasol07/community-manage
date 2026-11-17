@@ -1,1 +1,1 @@
-# community_manage
+# 작별여행커 운영 레포
