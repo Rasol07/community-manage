@@ -1,0 +1,23 @@
+{
+  // 모든 패키지(web / api / shared)가 extends 하는 공통 규칙만 둔다.
+  // 경로(include, rootDir, outDir)나 환경별 설정(types, jsx, dom)은 각 패키지 tsconfig.json에서 지정.
+  "compilerOptions": {
+    "target": "ES2023", // 출력할 JavaScript 문법 버전
+    "lib": ["ES2023"], // 기본 내장 타입 (브라우저 DOM은 web에서만 추가)
+    "module": "Preserve", // import/export를 그대로 두고 번들러(Next, tsx/tsup)가 처리
+    "moduleResolution": "Bundler", // 번들러 규칙으로 import 경로 찾기 (.js 확장자 불필요)
+    "resolveJsonModule": true, // .json 파일 import 허용
+    "noEmit": true, // tsc는 타입 검사만, JS 출력은 번들러가 담당
+
+    "strict": true, // 엄격한 타입 검사 규칙 켜기
+    "noUncheckedIndexedAccess": true, // 배열 등에서 [ ]로 꺼낸 값도 undefined일 수 있다고 검사
+    "noImplicitOverride": true, // 상속받은 메서드 재정의 시 override 키워드 필수
+    "noFallthroughCasesInSwitch": true, // switch case에서 break 누락 검사
+
+    "verbatimModuleSyntax": true, // 타입 import는 import type으로 명시
+    "isolatedModules": true, // 파일 하나씩 변환해도 안전한 코드인지 검사
+    "noUncheckedSideEffectImports": true, // 값 없이 가져오는 import도 경로 검사
+    "moduleDetection": "force", // import·export가 없는 파일도 모듈로 처리
+    "skipLibCheck": true // 설치한 라이브러리의 타입 정보 파일 안 오류는 알리지 않음
+  }
+}

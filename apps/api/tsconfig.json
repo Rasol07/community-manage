@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"] // Node 런타임 타입 (process, Buffer 등)
+  },
+  "include": ["src"]
+}
