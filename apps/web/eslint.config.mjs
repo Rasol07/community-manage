@@ -8,8 +8,9 @@ const eslintConfig = defineConfig([
   ...nextTs,
   ...rootConfig,
   {
-    settings: {
-      next: { rootDir: import.meta.dirname },
+    // App router는 페이지 개념으로 작동되지 않아 해당 옵션 제거
+    rules: {
+      '@next/next/no-html-link-for-pages': 'off',
     },
   },
   // Override default ignores of eslint-config-next.
