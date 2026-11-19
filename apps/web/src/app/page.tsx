@@ -1,7 +1,10 @@
-import Image from 'next/image';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   return (
-    <main className="p-8 text-2xl font-bold text-purple-500">community</main>
+    <div>
+      <main className="p-8 text-2xl font-bold text-purple-500">community</main>
+      <Button>안녕</Button>
+    </div>
   );
 }
