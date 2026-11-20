@@ -13,6 +13,7 @@ export default defineConfig([
     '**/.next/',
     '**/coverage/',
     '**/next-env.d.ts',
+    '**/prisma/contract.d.ts',
   ]),
 
   js.configs.recommended,

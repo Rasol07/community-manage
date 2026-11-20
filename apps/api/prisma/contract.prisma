@@ -1,0 +1,46 @@
+// use prisma-8
+enum Role {
+  @@type("pg/text@1")
+  ADMIN = "ADMIN"
+  MEMBER = "MEMBER"
+}
+
+enum RoleChangeReason {
+  @@type("pg/text@1")
+  INITIAL = "INITIAL"
+  LOGIN = "LOGIN"
+  REFRESH = "REFRESH"
+}
+
+model User {
+  id             Cuid2              @id @onCreate(cuid(2))
+  discordId      String             @unique
+  username       String
+  displayName    String
+  avatarUrl      String
+  role           Role               @default(MEMBER)
+  tokenVersion   Int                @default(0)
+  createdAt      temporal.CreatedAt @default(now())
+  updatedAt      temporal.UpdatedAt
+  lastLoginAt    DateTime
+  lastSyncedAt   DateTime
+
+  roleChangeLogs RoleChangeLog[]
+
+  @@index([displayName])
+  @@index([createdAt])
+}
+
+model RoleChangeLog {
+  id        Cuid2              @id @onCreate(cuid(2))
+  userId    Cuid2
+  fromRole  Role?
+  toRole    Role
+  reason    RoleChangeReason
+  createdAt temporal.CreatedAt @default(now())
+
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}

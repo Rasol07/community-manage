@@ -224,6 +224,9 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
+      '@prisma/cli-engine':
+        specifier: 0.10.0
+        version: 0.10.0(@prisma/management-api-sdk@1.80.0)(magicast@0.5.5)
       '@types/cookie-parser':
         specifier: ^1.4.10
         version: 1.4.10(@types/express@5.0.6)
