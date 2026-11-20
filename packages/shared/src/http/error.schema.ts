@@ -7,6 +7,7 @@ export const ErrorCode = z.enum([
   'NOT_GUILD_MEMBER',
   'FORBIDDEN',
   'FORBIDDEN_ORIGIN',
+  'NOT_FOUND',
   'VALIDATION_FAILED',
   'INTERNAL',
 ]);
