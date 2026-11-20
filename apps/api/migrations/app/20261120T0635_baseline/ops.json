@@ -1,0 +1,457 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.RoleChangeLog",
+    "label": "Create table \"RoleChangeLog\"",
+    "summary": "Creates table \"RoleChangeLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "RoleChangeLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"RoleChangeLog\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RoleChangeLog\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"RoleChangeLog\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"RoleChangeLog\"",
+        "sql": "CREATE TABLE \"public\".\"RoleChangeLog\" (\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"fromRole\" text,\n  \"id\" character(24) NOT NULL,\n  \"reason\" text NOT NULL,\n  \"toRole\" text NOT NULL,\n  \"userId\" character(24) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"RoleChangeLog_fromRole_check_2b268713\" CHECK (\"fromRole\" IN ('ADMIN', 'MEMBER')),\n  CONSTRAINT \"RoleChangeLog_reason_check_2ce26f17\" CHECK (\"reason\" IN ('INITIAL', 'LOGIN', 'REFRESH')),\n  CONSTRAINT \"RoleChangeLog_toRole_check_4f6283c9\" CHECK (\"toRole\" IN ('ADMIN', 'MEMBER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"RoleChangeLog\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"RoleChangeLog\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"RoleChangeLog\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "table.User",
+    "label": "Create table \"User\"",
+    "summary": "Creates table \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"User\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "table \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"User\"",
+        "sql": "CREATE TABLE \"public\".\"User\" (\n  \"avatarUrl\" text NOT NULL,\n  \"createdAt\" timestamptz(3) DEFAULT (now()) NOT NULL,\n  \"discordId\" text NOT NULL,\n  \"displayName\" text NOT NULL,\n  \"id\" character(24) NOT NULL,\n  \"lastLoginAt\" timestamptz(3) NOT NULL,\n  \"lastSyncedAt\" timestamptz(3) NOT NULL,\n  \"role\" text DEFAULT 'MEMBER' NOT NULL,\n  \"tokenVersion\" int4 DEFAULT 0 NOT NULL,\n  \"updatedAt\" timestamptz(3) NOT NULL,\n  \"username\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"User_role_check_ddb31015\" CHECK (\"role\" IN ('ADMIN', 'MEMBER'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"User\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3))) AS \"result\"",
+        "params": [
+          "\"public\".\"User\"",
+          "r",
+          "p"
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "table \"User\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "unique.User.User_discordId_key",
+    "label": "Add unique constraint on \"User\" (discordId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "User_discordId_key",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"User_discordId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "User_discordId_key",
+          "public",
+          "\"public\".\"User\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"User_discordId_key\" on \"User\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"User_discordId_key\"",
+        "sql": "ALTER TABLE \"public\".\"User\" ADD CONSTRAINT \"User_discordId_key\" UNIQUE (\"discordId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify unique constraint \"User_discordId_key\" exists on (discordId)",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb)) AS \"result\"",
+        "params": [
+          "User_discordId_key",
+          "public",
+          "\"public\".\"User\"",
+          "u",
+          "[\"discordId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.RoleChangeLog.RoleChangeLog_createdAt_idx_9575dbd7",
+    "label": "Create index \"RoleChangeLog_createdAt_idx_9575dbd7\" on \"RoleChangeLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "RoleChangeLog_createdAt_idx_9575dbd7",
+        "table": "RoleChangeLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"RoleChangeLog_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RoleChangeLog_createdAt_idx_9575dbd7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"RoleChangeLog_createdAt_idx_9575dbd7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"RoleChangeLog_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"RoleChangeLog_createdAt_idx_9575dbd7\" ON \"public\".\"RoleChangeLog\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"RoleChangeLog_createdAt_idx_9575dbd7\" exists on \"RoleChangeLog\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"RoleChangeLog_createdAt_idx_9575dbd7\"",
+          "i",
+          "I",
+          "\"public\".\"RoleChangeLog\"",
+          "btree",
+          "[\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.RoleChangeLog.RoleChangeLog_userId_createdAt_idx_f726f04a",
+    "label": "Create index \"RoleChangeLog_userId_createdAt_idx_f726f04a\" on \"RoleChangeLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "RoleChangeLog_userId_createdAt_idx_f726f04a",
+        "table": "RoleChangeLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"RoleChangeLog_userId_createdAt_idx_f726f04a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RoleChangeLog_userId_createdAt_idx_f726f04a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"RoleChangeLog_userId_createdAt_idx_f726f04a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"RoleChangeLog_userId_createdAt_idx_f726f04a\"",
+        "sql": "CREATE INDEX \"RoleChangeLog_userId_createdAt_idx_f726f04a\" ON \"public\".\"RoleChangeLog\" (\"userId\", \"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"RoleChangeLog_userId_createdAt_idx_f726f04a\" exists on \"RoleChangeLog\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"RoleChangeLog_userId_createdAt_idx_f726f04a\"",
+          "i",
+          "I",
+          "\"public\".\"RoleChangeLog\"",
+          "btree",
+          "[\"userId\",\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.RoleChangeLog.RoleChangeLog_userId_idx_a489d58a",
+    "label": "Create index \"RoleChangeLog_userId_idx_a489d58a\" on \"RoleChangeLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "RoleChangeLog_userId_idx_a489d58a",
+        "table": "RoleChangeLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"RoleChangeLog_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"RoleChangeLog_userId_idx_a489d58a\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"RoleChangeLog_userId_idx_a489d58a\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"RoleChangeLog_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"RoleChangeLog_userId_idx_a489d58a\" ON \"public\".\"RoleChangeLog\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"RoleChangeLog_userId_idx_a489d58a\" exists on \"RoleChangeLog\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"RoleChangeLog_userId_idx_a489d58a\"",
+          "i",
+          "I",
+          "\"public\".\"RoleChangeLog\"",
+          "btree",
+          "[\"userId\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.User.User_createdAt_idx_9575dbd7",
+    "label": "Create index \"User_createdAt_idx_9575dbd7\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "User_createdAt_idx_9575dbd7",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"User_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_createdAt_idx_9575dbd7\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"User_createdAt_idx_9575dbd7\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"User_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"User_createdAt_idx_9575dbd7\" ON \"public\".\"User\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"User_createdAt_idx_9575dbd7\" exists on \"User\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"User_createdAt_idx_9575dbd7\"",
+          "i",
+          "I",
+          "\"public\".\"User\"",
+          "btree",
+          "[\"createdAt\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.User.User_displayName_idx_6daae81f",
+    "label": "Create index \"User_displayName_idx_6daae81f\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "User_displayName_idx_6daae81f",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"User_displayName_idx_6daae81f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_displayName_idx_6daae81f\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "index \"User_displayName_idx_6daae81f\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"User_displayName_idx_6daae81f\"",
+        "sql": "CREATE INDEX \"User_displayName_idx_6daae81f\" ON \"public\".\"User\" (\"displayName\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"User_displayName_idx_6daae81f\" exists on \"User\" with the planned definition",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_class\" AS \"c\" INNER JOIN \"pg_index\" AS \"i\" ON \"i\".\"indexrelid\" = \"c\".\"oid\" INNER JOIN \"pg_am\" AS \"m\" ON \"m\".\"oid\" = \"c\".\"relam\" WHERE (\"c\".\"oid\" = to_regclass($1) AND (\"c\".\"relkind\" = $2 OR \"c\".\"relkind\" = $3) AND \"i\".\"indrelid\" = to_regclass($4) AND NOT (\"i\".\"indisunique\") AND \"m\".\"amname\" = $5 AND (\"i\".\"indexprs\" IS NULL AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"i\".\"indkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"i\".\"indrelid\" AND key_attribute.attnum = key_column.attnum) = ($6)::jsonb) AND \"i\".\"indpred\" IS NULL)) AS \"result\"",
+        "params": [
+          "\"public\".\"User_displayName_idx_6daae81f\"",
+          "i",
+          "I",
+          "\"public\".\"User\"",
+          "btree",
+          "[\"displayName\"]"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.RoleChangeLog.RoleChangeLog_userId_fkey",
+    "label": "Add foreign key \"RoleChangeLog_userId_fkey\" on \"RoleChangeLog\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "RoleChangeLog_userId_fkey",
+        "table": "RoleChangeLog"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"RoleChangeLog_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "RoleChangeLog_userId_fkey",
+          "public",
+          "\"public\".\"RoleChangeLog\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "FK \"RoleChangeLog_userId_fkey\" on \"RoleChangeLog\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"RoleChangeLog_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"RoleChangeLog\"\nADD CONSTRAINT \"RoleChangeLog_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"User\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"RoleChangeLog_userId_fkey\" exists with the planned columns, referenced table and actions",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4 AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"conkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"conrelid\" AND key_attribute.attnum = key_column.attnum) = ($5)::jsonb AND \"c\".\"confrelid\" = to_regclass($6) AND (SELECT coalesce(jsonb_agg(key_attribute.attname ORDER BY key_column.position), '[]'::jsonb) FROM unnest(\"c\".\"confkey\"::int2[]) WITH ORDINALITY AS key_column(attnum, position) JOIN pg_attribute key_attribute ON key_attribute.attrelid = \"c\".\"confrelid\" AND key_attribute.attnum = key_column.attnum) = ($7)::jsonb AND \"c\".\"confdeltype\" = $8 AND \"c\".\"confupdtype\" = $9)) AS \"result\"",
+        "params": [
+          "RoleChangeLog_userId_fkey",
+          "public",
+          "\"public\".\"RoleChangeLog\"",
+          "f",
+          "[\"userId\"]",
+          "\"public\".\"User\"",
+          "[\"id\"]",
+          "c",
+          "a"
+        ]
+      }
+    ]
+  }
+]
