@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, beforeEach } from 'vitest';
 import { server } from './mocks/server';
-import { db } from '../prisma/db';
+import { db } from '../src/lib/db';
 
 // 테스트 시작 전: 가로채기 시작.
 // 가짜 응답을 정하지 않은 바깥 요청이 나가면 에러로 만들어서, 실수로 진짜 Discord를 부르는 걸 막는다.
