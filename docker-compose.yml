@@ -1,6 +1,7 @@
 name: community
 
 services:
+  # 여기서 DB 내의 설정들 다 함. 그 원래 postgres 만들 때 지정했던 것들
   postgres:
     image: postgres:18-alpine
     restart: unless-stopped
