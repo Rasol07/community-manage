@@ -1,0 +1,28 @@
+# 앞에 /를 붙이지 않아야 apps/*, packages/* 안의 폴더까지 전부 무시됨
+
+# dependencies
+node_modules
+
+# build output
+dist
+build
+out
+.next
+*.tsbuildinfo
+next-env.d.ts
+
+# test
+coverage
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+*.tsbuildinfo
