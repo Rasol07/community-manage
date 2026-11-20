@@ -1,0 +1,12 @@
+import { afterAll, afterEach, beforeAll } from 'vitest';
+import { server } from './mocks/server';
+
+// 테스트 시작 전: 가로채기 시작.
+// 가짜 응답을 정하지 않은 바깥 요청이 나가면 에러로 만들어서, 실수로 진짜 Discord를 부르는 걸 막는다.
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }));
+
+// 테스트 하나 끝날 때마다: 그 테스트가 임시로 바꾼 가짜 응답을 원래대로 되돌린다.
+afterEach(() => server.resetHandlers());
+
+// 전부 끝나면: 가로채기 종료.
+afterAll(() => server.close());
